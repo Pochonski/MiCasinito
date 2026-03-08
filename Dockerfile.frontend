@@ -1,0 +1,21 @@
+# syntax=docker/dockerfile:1
+
+FROM node:20-alpine AS build
+WORKDIR /usr/src/app
+
+COPY frontend/package*.json ./
+RUN npm ci --legacy-peer-deps
+
+COPY frontend/ ./
+
+ARG VITE_API_BASE=https://example.com/api
+ENV VITE_API_BASE=${VITE_API_BASE}
+
+RUN npm run build
+
+FROM caddy:latest AS serve
+COPY --from=build /usr/src/app/dist /usr/share/caddy
+COPY frontend/Caddyfile.static /etc/caddy/Caddyfile
+
+EXPOSE 80
+CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile"]

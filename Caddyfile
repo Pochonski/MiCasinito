@@ -1,0 +1,41 @@
+﻿{} {
+  encode gzip zstd
+
+  handle_path /api/ws/* {
+    reverse_proxy backend:8000 {
+      header_up Host {http.request.host}
+      header_up X-Forwarded-Proto {http.request.scheme}
+      header_up X-Forwarded-For {http.request.remote}
+      transport http {
+        versions h2c 1.1
+      }
+    }
+  }
+
+  handle_path /api/* {
+    reverse_proxy backend:8000 {
+      header_up Host {http.request.host}
+      header_up X-Forwarded-Proto {http.request.scheme}
+      header_up X-Forwarded-For {http.request.remote}
+    }
+  }
+
+  handle /ws* {
+    reverse_proxy backend:8000 {
+      header_up Host {http.request.host}
+      header_up X-Forwarded-Proto {http.request.scheme}
+      header_up X-Forwarded-For {http.request.remote}
+      transport http {
+        versions h2c 1.1
+      }
+    }
+  }
+
+  handle {
+    reverse_proxy frontend:80 {
+      header_up Host {http.request.host}
+      header_up X-Forwarded-Proto {http.request.scheme}
+      header_up X-Forwarded-For {http.request.remote}
+    }
+  }
+}
